@@ -4,6 +4,7 @@ import (
 	"context"
 
 	v1 "github.com/dqixuan/stock_info/api/helloworld/v1"
+	"github.com/dqixuan/stock_info/configs"
 	"github.com/dqixuan/stock_info/internal/biz"
 )
 
@@ -11,12 +12,13 @@ import (
 type GreeterService struct {
 	v1.UnimplementedGreeterServer
 
-	uc *biz.GreeterUsecase
+	uc   *biz.GreeterUsecase
+	conf *configs.Config
 }
 
 // NewGreeterService new a greeter service.
-func NewGreeterService(uc *biz.GreeterUsecase) *GreeterService {
-	return &GreeterService{uc: uc}
+func NewGreeterService(uc *biz.GreeterUsecase, conf *configs.Config) *GreeterService {
+	return &GreeterService{uc: uc, conf: conf}
 }
 
 // SayHello implements helloworld.GreeterServer.

@@ -2,7 +2,7 @@ package server
 
 import (
 	v1 "github.com/dqixuan/stock_info/api/helloworld/v1"
-	"github.com/dqixuan/stock_info/internal/conf"
+	"github.com/dqixuan/stock_info/configs"
 	"github.com/dqixuan/stock_info/internal/service"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -11,20 +11,17 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, greeter *service.GreeterService, logger log.Logger) *http.Server {
+func NewHTTPServer(c *configs.HttpServer, greeter *service.GreeterService, logger log.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
 		),
 	}
-	if c.Http.Network != "" {
-		opts = append(opts, http.Network(c.Http.Network))
+	if c.Addr != "" {
+		opts = append(opts, http.Address(c.Addr))
 	}
-	if c.Http.Addr != "" {
-		opts = append(opts, http.Address(c.Http.Addr))
-	}
-	if c.Http.Timeout != nil {
-		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
+	if c.Timeout != 0 {
+		opts = append(opts, http.Timeout(c.Timeout))
 	}
 	srv := http.NewServer(opts...)
 	v1.RegisterGreeterHTTPServer(srv, greeter)

@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/dqixuan/stock_info/internal/conf"
+	"github.com/dqixuan/stock_info/configs"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -14,8 +14,8 @@ type Data struct {
 }
 
 // NewData .
-func NewData(c *conf.Data, loggerHelper log.Logger) (*Data, func(), error) {
-	db, err := initDB(c.Database, loggerHelper)
+func NewData(c *configs.Mysql, loggerHelper log.Logger) (*Data, func(), error) {
+	db, err := initDB(c, loggerHelper)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -39,12 +39,12 @@ func (d *Data) DB() *gorm.DB {
 }
 
 // initDB initializes MySQL connection
-func initDB(c *conf.Data_Database, loggerHelper log.Logger) (*gorm.DB, error) {
+func initDB(c *configs.Mysql, loggerHelper log.Logger) (*gorm.DB, error) {
 	if c == nil {
 		return nil, nil
 	}
 
-	db, err := gorm.Open(mysql.Open(c.Source), &gorm.Config{
+	db, err := gorm.Open(mysql.Open(c.Root), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 

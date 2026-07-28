@@ -7,8 +7,8 @@
 package main
 
 import (
+	"github.com/dqixuan/stock_info/configs"
 	"github.com/dqixuan/stock_info/internal/biz"
-	"github.com/dqixuan/stock_info/internal/conf"
 	"github.com/dqixuan/stock_info/internal/data"
 	"github.com/dqixuan/stock_info/internal/server"
 	"github.com/dqixuan/stock_info/internal/service"
@@ -20,20 +20,23 @@ import (
 	_ "go.uber.org/automaxprocs"
 )
 
-// Injectors from service_wire.go:
+// Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
-	dataData, cleanup, err := data.NewData(confData, logger)
+func wireApp(config *configs.Config, logger log.Logger) (*kratos.App, func(), error) {
+	grpcServer := configs.NewGrpcCfg()
+	mysql := configs.NewMysqlCfg()
+	dataData, cleanup, err := data.NewData(mysql, logger)
 	if err != nil {
 		return nil, nil, err
 	}
 	greeterRepo := data.NewGreeterRepo(dataData, logger)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, logger)
-	greeterService := service.NewGreeterService(greeterUsecase)
-	grpcServer := server.NewGRPCServer(confServer, greeterService, logger)
-	httpServer := server.NewHTTPServer(confServer, greeterService, logger)
-	app := newApp(logger, grpcServer, httpServer)
+	greeterService := service.NewGreeterService(greeterUsecase, config)
+	server2 := server.NewGRPCServer(grpcServer, greeterService)
+	httpServer := configs.NewHttpCfg()
+	server3 := server.NewHTTPServer(httpServer, greeterService, logger)
+	app := newApp(logger, server2, server3)
 	return app, func() {
 		cleanup()
 	}, nil
