@@ -7,11 +7,29 @@ info:
     description: The greeting service definition.
     version: 0.0.1
 paths:
+    /api/stock:
+        post:
+            tags:
+                - Greeter
+            description: init stock info
+            operationId: Greeter_SaveStock
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/helloworld.v1.StockInfoRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/helloworld.v1.StockInfoReply'
     /helloworld/{name}:
         get:
             tags:
                 - Greeter
-                - subgroup
             description: Sends a greeting
             operationId: Greeter_SayHello
             parameters:
@@ -35,5 +53,11 @@ components:
                 message:
                     type: string
             description: The response message containing the greetings
+        helloworld.v1.StockInfoReply:
+            type: object
+            properties: {}
+        helloworld.v1.StockInfoRequest:
+            type: object
+            properties: {}
 tags:
     - name: Greeter

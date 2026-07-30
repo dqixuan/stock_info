@@ -17,7 +17,20 @@ service Greeter {
       get: "/helloworld/{name}"
     };
   }
+
+  // init stock info
+  rpc SaveStock(StockInfoRequest) returns (StockInfoReply) {
+    option (google.api.http) = {
+      post: "/api/stock"
+      body: "*"
+    };
+  }
 }
+
+message StockInfoRequest {
+}
+
+message StockInfoReply {}
 
 // The request message containing the user's name.
 message HelloRequest {

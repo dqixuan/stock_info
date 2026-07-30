@@ -6,6 +6,7 @@
 package main
 
 import (
+	"github.com/dqixuan/stock_info/internal/dao"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -25,6 +26,7 @@ func wireApp(config *configs.Config, logger log.Logger) (*kratos.App, func(), er
 		data.ProviderSet,
 		biz.ProviderSet,
 		service.ProviderSet,
+		dao.ProviderSet,
 		newApp,
 	))
 }
