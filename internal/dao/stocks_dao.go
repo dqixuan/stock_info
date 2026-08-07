@@ -3,6 +3,7 @@ package dao
 import (
 	"errors"
 
+	"github.com/dqixuan/stock_info/internal/data"
 	"github.com/dqixuan/stock_info/internal/model"
 	"gorm.io/gorm"
 )
@@ -13,8 +14,10 @@ type StockDao struct {
 }
 
 // NewStockDao 创建 StockDao
-func NewStockDao(db *gorm.DB) *StockDao {
-	return &StockDao{db: db}
+func NewStockDao(data *data.Data) *StockDao {
+	return &StockDao{
+		db: data.DB(),
+	}
 }
 
 // Create 创建股票

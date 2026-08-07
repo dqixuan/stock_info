@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package stock.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "stock_info/api/stock/v1;v1";
+option java_multiple_files = true;
+option java_package = "dev.kratos.api.stock.v1";
+option java_outer_classname = "StockProtoV1";
+
+// The greeting service definition.
+service StockService {
+  // 查询股票列表
+  rpc GetStockList(StockInfoRequest) returns (StockInfoReply) {
+    option (google.api.http) = {
+      post: "/api/stock"
+      body: "*"
+    };
+  }
+  //
+  rpc AddStockPrice(StockPriceRequest) returns (StockPriceReply) {
+    option (google.api.http) = {
+      post: "/api/stock/price"
+      body: "*"
+    };
+  }
+}
+
+message StockInfoRequest {
+  string stock_code = 1;
+  string stock_name = 2;
+  string stock_type = 3;
+  string stock_market = 4;
+  int64 id = 5;
+}
+
+message StockInfoReply {
+  repeated StockInfo stocks = 1;
+}
+
+message StockInfo {
+  string stock_code = 1;
+  string stock_name = 2;
+  string stock_type = 3;
+  string stock_market = 4;
+}
+
+message StockPriceRequest {
+
+}
+
+message StockPriceReply {
+
+}

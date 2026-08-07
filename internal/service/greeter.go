@@ -10,6 +10,7 @@ import (
 	"github.com/dqixuan/stock_info/configs"
 	"github.com/dqixuan/stock_info/internal/biz"
 	"github.com/dqixuan/stock_info/internal/dao"
+	"github.com/dqixuan/stock_info/internal/data"
 	"github.com/dqixuan/stock_info/internal/model"
 	"github.com/dqixuan/stock_info/pkg"
 	"gorm.io/gorm"
@@ -26,8 +27,18 @@ type GreeterService struct {
 }
 
 // NewGreeterService new a greeter service.
-func NewGreeterService(uc *biz.GreeterUsecase, conf *configs.Config) *GreeterService {
-	return &GreeterService{uc: uc, conf: conf}
+func NewGreeterService(
+	uc *biz.GreeterUsecase,
+	conf *configs.Config,
+	data *data.Data,
+	stockDao *dao.StockDao,
+) *GreeterService {
+	return &GreeterService{
+		uc:       uc,
+		conf:     conf,
+		mysql:    data.DB(),
+		stockDao: stockDao,
+	}
 }
 
 // SayHello implements helloworld.GreeterServer.

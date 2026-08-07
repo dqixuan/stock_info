@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/dqixuan/stock_info/configs"
 	"github.com/dqixuan/stock_info/internal/biz"
+	"github.com/dqixuan/stock_info/internal/dao"
 	"github.com/dqixuan/stock_info/internal/data"
 	"github.com/dqixuan/stock_info/internal/server"
 	"github.com/dqixuan/stock_info/internal/service"
@@ -32,7 +33,8 @@ func wireApp(config *configs.Config, logger log.Logger) (*kratos.App, func(), er
 	}
 	greeterRepo := data.NewGreeterRepo(dataData, logger)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, logger)
-	greeterService := service.NewGreeterService(greeterUsecase, config)
+	stockDao := dao.NewStockDao(dataData)
+	greeterService := service.NewGreeterService(greeterUsecase, config, dataData, stockDao)
 	server2 := server.NewGRPCServer(grpcServer, greeterService)
 	httpServer := configs.NewHttpCfg()
 	server3 := server.NewHTTPServer(httpServer, greeterService, logger)

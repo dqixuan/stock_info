@@ -3,21 +3,20 @@
 
 openapi: 3.0.3
 info:
-    title: Greeter API
-    description: The greeting service definition.
+    title: ""
     version: 0.0.1
 paths:
     /api/stock:
         post:
             tags:
-                - Greeter
-            description: init stock info
-            operationId: Greeter_SaveStock
+                - StockService
+            description: 查询股票列表
+            operationId: StockService_GetStockList
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/helloworld.v1.StockInfoRequest'
+                            $ref: '#/components/schemas/stock.v1.StockInfoRequest'
                 required: true
             responses:
                 "200":
@@ -25,7 +24,25 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/helloworld.v1.StockInfoReply'
+                                $ref: '#/components/schemas/stock.v1.StockInfoReply'
+    /api/stock/price:
+        post:
+            tags:
+                - StockService
+            operationId: StockService_AddStockPrice
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/stock.v1.StockPriceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/stock.v1.StockPriceReply'
     /helloworld/{name}:
         get:
             tags:
@@ -59,5 +76,45 @@ components:
         helloworld.v1.StockInfoRequest:
             type: object
             properties: {}
+        stock.v1.StockInfo:
+            type: object
+            properties:
+                stockCode:
+                    type: string
+                stockName:
+                    type: string
+                stockType:
+                    type: string
+                stockMarket:
+                    type: string
+        stock.v1.StockInfoReply:
+            type: object
+            properties:
+                stocks:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/stock.v1.StockInfo'
+        stock.v1.StockInfoRequest:
+            type: object
+            properties:
+                stockCode:
+                    type: string
+                stockName:
+                    type: string
+                stockType:
+                    type: string
+                stockMarket:
+                    type: string
+                id:
+                    type: string
+        stock.v1.StockPriceReply:
+            type: object
+            properties: {}
+        stock.v1.StockPriceRequest:
+            type: object
+            properties: {}
 tags:
     - name: Greeter
+      description: The greeting service definition.
+    - name: StockService
+      description: The greeting service definition.
