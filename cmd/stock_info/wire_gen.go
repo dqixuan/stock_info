@@ -8,7 +8,6 @@ package main
 
 import (
 	"github.com/dqixuan/stock_info/configs"
-	"github.com/dqixuan/stock_info/internal/biz"
 	"github.com/dqixuan/stock_info/internal/dao"
 	"github.com/dqixuan/stock_info/internal/data"
 	"github.com/dqixuan/stock_info/internal/server"
@@ -26,18 +25,18 @@ import (
 // wireApp init kratos application.
 func wireApp(config *configs.Config, logger log.Logger) (*kratos.App, func(), error) {
 	grpcServer := configs.NewGrpcCfg()
+	server2 := server.NewGRPCServer(grpcServer)
+	httpServer := configs.NewHttpCfg()
 	mysql := configs.NewMysqlCfg()
 	dataData, cleanup, err := data.NewData(mysql, logger)
 	if err != nil {
 		return nil, nil, err
 	}
-	greeterRepo := data.NewGreeterRepo(dataData, logger)
-	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, logger)
 	stockDao := dao.NewStockDao(dataData)
-	greeterService := service.NewGreeterService(greeterUsecase, config, dataData, stockDao)
-	server2 := server.NewGRPCServer(grpcServer, greeterService)
-	httpServer := configs.NewHttpCfg()
-	server3 := server.NewHTTPServer(httpServer, greeterService, logger)
+	stockPriceDao := dao.NewStockPriceDao(dataData)
+	stockService := service.NewStockService(dataData, stockDao, stockPriceDao)
+	healthService := service.NewHealthService()
+	server3 := server.NewHTTPServer(httpServer, stockService, healthService)
 	app := newApp(logger, server2, server3)
 	return app, func() {
 		cleanup()

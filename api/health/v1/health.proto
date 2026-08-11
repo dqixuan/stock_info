@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package health.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "stock_info/api/health/v1;v1";
+option java_multiple_files = true;
+option java_package = "dev.kratos.api.health.v1";
+
+
+service Health {
+  rpc Check(HealthCheckRequest) returns (HealthCheckReply) {
+    option (google.api.http) = {
+      get: "/api/v1/health"
+    };
+  }
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckReply {
+  string result = 1;
+}

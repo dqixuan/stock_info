@@ -62,6 +62,11 @@ all:
 	make config;
 	make generate;
 
+wire:
+	@echo "Generating wire..."
+	@wire ./...
+	wire ./...
+
 # show help
 help:
 	@echo ''

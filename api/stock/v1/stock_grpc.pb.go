@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	StockService_GetStockList_FullMethodName  = "/stock.v1.StockService/GetStockList"
 	StockService_AddStockPrice_FullMethodName = "/stock.v1.StockService/AddStockPrice"
+	StockService_InitStockInfo_FullMethodName = "/stock.v1.StockService/InitStockInfo"
 )
 
 // StockServiceClient is the client API for StockService service.
@@ -31,7 +32,10 @@ const (
 type StockServiceClient interface {
 	// 查询股票列表
 	GetStockList(ctx context.Context, in *StockInfoRequest, opts ...grpc.CallOption) (*StockInfoReply, error)
+	// 增加股票价格信息
 	AddStockPrice(ctx context.Context, in *StockPriceRequest, opts ...grpc.CallOption) (*StockPriceReply, error)
+	// 初始化股票信息
+	InitStockInfo(ctx context.Context, in *InitStockInfoRequest, opts ...grpc.CallOption) (*InitStockInfoReply, error)
 }
 
 type stockServiceClient struct {
@@ -62,6 +66,16 @@ func (c *stockServiceClient) AddStockPrice(ctx context.Context, in *StockPriceRe
 	return out, nil
 }
 
+func (c *stockServiceClient) InitStockInfo(ctx context.Context, in *InitStockInfoRequest, opts ...grpc.CallOption) (*InitStockInfoReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InitStockInfoReply)
+	err := c.cc.Invoke(ctx, StockService_InitStockInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StockServiceServer is the server API for StockService service.
 // All implementations must embed UnimplementedStockServiceServer
 // for forward compatibility.
@@ -70,7 +84,10 @@ func (c *stockServiceClient) AddStockPrice(ctx context.Context, in *StockPriceRe
 type StockServiceServer interface {
 	// 查询股票列表
 	GetStockList(context.Context, *StockInfoRequest) (*StockInfoReply, error)
+	// 增加股票价格信息
 	AddStockPrice(context.Context, *StockPriceRequest) (*StockPriceReply, error)
+	// 初始化股票信息
+	InitStockInfo(context.Context, *InitStockInfoRequest) (*InitStockInfoReply, error)
 	mustEmbedUnimplementedStockServiceServer()
 }
 
@@ -86,6 +103,9 @@ func (UnimplementedStockServiceServer) GetStockList(context.Context, *StockInfoR
 }
 func (UnimplementedStockServiceServer) AddStockPrice(context.Context, *StockPriceRequest) (*StockPriceReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddStockPrice not implemented")
+}
+func (UnimplementedStockServiceServer) InitStockInfo(context.Context, *InitStockInfoRequest) (*InitStockInfoReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method InitStockInfo not implemented")
 }
 func (UnimplementedStockServiceServer) mustEmbedUnimplementedStockServiceServer() {}
 func (UnimplementedStockServiceServer) testEmbeddedByValue()                      {}
@@ -144,6 +164,24 @@ func _StockService_AddStockPrice_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StockService_InitStockInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitStockInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StockServiceServer).InitStockInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StockService_InitStockInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StockServiceServer).InitStockInfo(ctx, req.(*InitStockInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StockService_ServiceDesc is the grpc.ServiceDesc for StockService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -158,6 +196,10 @@ var StockService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddStockPrice",
 			Handler:    _StockService_AddStockPrice_Handler,
+		},
+		{
+			MethodName: "InitStockInfo",
+			Handler:    _StockService_InitStockInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

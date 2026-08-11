@@ -67,9 +67,7 @@ func FetchAllAStocks() ([]StockInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		fmt.Println("length:", len(pageStocks))
-
+		
 		if len(pageStocks) == 0 {
 			break
 		}

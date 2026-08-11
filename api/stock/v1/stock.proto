@@ -14,18 +14,29 @@ service StockService {
   // 查询股票列表
   rpc GetStockList(StockInfoRequest) returns (StockInfoReply) {
     option (google.api.http) = {
-      post: "/api/stock"
+      post: "/api/v1/stock"
       body: "*"
     };
   }
-  //
+  // 增加股票价格信息
   rpc AddStockPrice(StockPriceRequest) returns (StockPriceReply) {
     option (google.api.http) = {
-      post: "/api/stock/price"
+      post: "/api/v1/stock/price"
+      body: "*"
+    };
+  }
+  // 初始化股票信息
+  rpc InitStockInfo(InitStockInfoRequest) returns (InitStockInfoReply) {
+    option (google.api.http) = {
+      post: "/api/v1/stock/init"
       body: "*"
     };
   }
 }
+
+message InitStockInfoRequest {}
+
+message InitStockInfoReply {}
 
 message StockInfoRequest {
   string stock_code = 1;
@@ -47,7 +58,16 @@ message StockInfo {
 }
 
 message StockPriceRequest {
-
+  string stock_id = 1;          // 股票代码
+  string trade_date = 2;        // 交易日期
+  double open_price = 3;        // 开盘价
+  double close_price = 4;       // 收盘价
+  double high_price = 5;        // 最高价
+  double low_price = 6;         // 最低价
+  int64 volume = 7;             // 成交量
+  double amount = 8;            // 成交额
+  double change_percent = 9;    // 涨跌幅(%)
+  double margin_balance = 10;   // 融资融券余额
 }
 
 message StockPriceReply {

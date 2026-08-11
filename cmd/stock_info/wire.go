@@ -12,7 +12,6 @@ import (
 	"github.com/google/wire"
 
 	"github.com/dqixuan/stock_info/configs"
-	"github.com/dqixuan/stock_info/internal/biz"
 	"github.com/dqixuan/stock_info/internal/data"
 	"github.com/dqixuan/stock_info/internal/server"
 	"github.com/dqixuan/stock_info/internal/service"
@@ -24,7 +23,6 @@ func wireApp(config *configs.Config, logger log.Logger) (*kratos.App, func(), er
 		configs.ProviderSet,
 		server.ProviderSet,
 		data.ProviderSet,
-		biz.ProviderSet,
 		service.ProviderSet,
 		dao.ProviderSet,
 		newApp,

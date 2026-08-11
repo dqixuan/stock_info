@@ -2,4 +2,7 @@ package dao
 
 import "github.com/google/wire"
 
-var ProviderSet = wire.NewSet(NewStockDao)
+var ProviderSet = wire.NewSet(
+	NewStockDao,
+	NewStockPriceDao,
+)

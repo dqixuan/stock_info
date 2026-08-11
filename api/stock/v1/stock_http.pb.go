@@ -21,18 +21,22 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationStockServiceAddStockPrice = "/stock.v1.StockService/AddStockPrice"
 const OperationStockServiceGetStockList = "/stock.v1.StockService/GetStockList"
+const OperationStockServiceInitStockInfo = "/stock.v1.StockService/InitStockInfo"
 
 type StockServiceHTTPServer interface {
-	// AddStockPrice
+	// AddStockPrice 增加股票价格信息
 	AddStockPrice(context.Context, *StockPriceRequest) (*StockPriceReply, error)
 	// GetStockList 查询股票列表
 	GetStockList(context.Context, *StockInfoRequest) (*StockInfoReply, error)
+	// InitStockInfo 初始化股票信息
+	InitStockInfo(context.Context, *InitStockInfoRequest) (*InitStockInfoReply, error)
 }
 
 func RegisterStockServiceHTTPServer(s *http.Server, srv StockServiceHTTPServer) {
 	r := s.Route("/")
-	r.POST("/api/stock", _StockService_GetStockList0_HTTP_Handler(srv))
-	r.POST("/api/stock/price", _StockService_AddStockPrice0_HTTP_Handler(srv))
+	r.POST("/api/v1/stock", _StockService_GetStockList0_HTTP_Handler(srv))
+	r.POST("/api/v1/stock/price", _StockService_AddStockPrice0_HTTP_Handler(srv))
+	r.POST("/api/v1/stock/init", _StockService_InitStockInfo0_HTTP_Handler(srv))
 }
 
 func _StockService_GetStockList0_HTTP_Handler(srv StockServiceHTTPServer) func(ctx http.Context) error {
@@ -79,11 +83,35 @@ func _StockService_AddStockPrice0_HTTP_Handler(srv StockServiceHTTPServer) func(
 	}
 }
 
+func _StockService_InitStockInfo0_HTTP_Handler(srv StockServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in InitStockInfoRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationStockServiceInitStockInfo)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.InitStockInfo(ctx, req.(*InitStockInfoRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*InitStockInfoReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type StockServiceHTTPClient interface {
-	// AddStockPrice
+	// AddStockPrice 增加股票价格信息
 	AddStockPrice(ctx context.Context, req *StockPriceRequest, opts ...http.CallOption) (rsp *StockPriceReply, err error)
 	// GetStockList 查询股票列表
 	GetStockList(ctx context.Context, req *StockInfoRequest, opts ...http.CallOption) (rsp *StockInfoReply, err error)
+	// InitStockInfo 初始化股票信息
+	InitStockInfo(ctx context.Context, req *InitStockInfoRequest, opts ...http.CallOption) (rsp *InitStockInfoReply, err error)
 }
 
 type StockServiceHTTPClientImpl struct {
@@ -94,10 +122,10 @@ func NewStockServiceHTTPClient(client *http.Client) StockServiceHTTPClient {
 	return &StockServiceHTTPClientImpl{client}
 }
 
-// AddStockPrice
+// AddStockPrice 增加股票价格信息
 func (c *StockServiceHTTPClientImpl) AddStockPrice(ctx context.Context, in *StockPriceRequest, opts ...http.CallOption) (*StockPriceReply, error) {
 	var out StockPriceReply
-	pattern := "/api/stock/price"
+	pattern := "/api/v1/stock/price"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationStockServiceAddStockPrice))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -111,9 +139,23 @@ func (c *StockServiceHTTPClientImpl) AddStockPrice(ctx context.Context, in *Stoc
 // GetStockList 查询股票列表
 func (c *StockServiceHTTPClientImpl) GetStockList(ctx context.Context, in *StockInfoRequest, opts ...http.CallOption) (*StockInfoReply, error) {
 	var out StockInfoReply
-	pattern := "/api/stock"
+	pattern := "/api/v1/stock"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationStockServiceGetStockList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// InitStockInfo 初始化股票信息
+func (c *StockServiceHTTPClientImpl) InitStockInfo(ctx context.Context, in *InitStockInfoRequest, opts ...http.CallOption) (*InitStockInfoReply, error) {
+	var out InitStockInfoReply
+	pattern := "/api/v1/stock/init"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationStockServiceInitStockInfo))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

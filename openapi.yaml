@@ -6,7 +6,19 @@ info:
     title: ""
     version: 0.0.1
 paths:
-    /api/stock:
+    /api/v1/health:
+        get:
+            tags:
+                - Health
+            operationId: Health_Check
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/health.v1.HealthCheckReply'
+    /api/v1/stock:
         post:
             tags:
                 - StockService
@@ -25,10 +37,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/stock.v1.StockInfoReply'
-    /api/stock/price:
+    /api/v1/stock/init:
         post:
             tags:
                 - StockService
+            description: 初始化股票信息
+            operationId: StockService_InitStockInfo
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/stock.v1.InitStockInfoRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/stock.v1.InitStockInfoReply'
+    /api/v1/stock/price:
+        post:
+            tags:
+                - StockService
+            description: 增加股票价格信息
             operationId: StockService_AddStockPrice
             requestBody:
                 content:
@@ -43,37 +75,17 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/stock.v1.StockPriceReply'
-    /helloworld/{name}:
-        get:
-            tags:
-                - Greeter
-            description: Sends a greeting
-            operationId: Greeter_SayHello
-            parameters:
-                - name: name
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/helloworld.v1.HelloReply'
 components:
     schemas:
-        helloworld.v1.HelloReply:
+        health.v1.HealthCheckReply:
             type: object
             properties:
-                message:
+                result:
                     type: string
-            description: The response message containing the greetings
-        helloworld.v1.StockInfoReply:
+        stock.v1.InitStockInfoReply:
             type: object
             properties: {}
-        helloworld.v1.StockInfoRequest:
+        stock.v1.InitStockInfoRequest:
             type: object
             properties: {}
         stock.v1.StockInfo:
@@ -112,9 +124,35 @@ components:
             properties: {}
         stock.v1.StockPriceRequest:
             type: object
-            properties: {}
+            properties:
+                stockId:
+                    type: string
+                tradeDate:
+                    type: string
+                openPrice:
+                    type: number
+                    format: double
+                closePrice:
+                    type: number
+                    format: double
+                highPrice:
+                    type: number
+                    format: double
+                lowPrice:
+                    type: number
+                    format: double
+                volume:
+                    type: string
+                amount:
+                    type: number
+                    format: double
+                changePercent:
+                    type: number
+                    format: double
+                marginBalance:
+                    type: number
+                    format: double
 tags:
-    - name: Greeter
-      description: The greeting service definition.
+    - name: Health
     - name: StockService
       description: The greeting service definition.

@@ -1,6 +1,14 @@
 import { useState } from 'react'
+import StockPriceInput from './StockPriceInput.jsx'
+
+const TABS = [
+  { key: 'hello', label: 'SayHello' },
+  { key: 'stock', label: '初始化股票' },
+  { key: 'price', label: '输入股票价格' },
+]
 
 function App() {
+  const [activeTab, setActiveTab] = useState('price')
   const [name, setName] = useState('')
   const [helloResult, setHelloResult] = useState('')
   const [stockResult, setStockResult] = useState('')
@@ -48,31 +56,49 @@ function App() {
     <div className="container">
       <h1>股票信息服务</h1>
 
-      <section className="card">
-        <h2>1. SayHello 接口</h2>
-        <p className="desc">调用 <code>GET /helloworld/{'{name}'}</code></p>
-        <div className="row">
-          <input
-            type="text"
-            placeholder="请输入名称"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button onClick={handleSayHello} disabled={loading}>
-            {loading ? '请求中...' : '调用 SayHello'}
+      <div className="tabs">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            className={`tab ${activeTab === tab.key ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
           </button>
-        </div>
-        {helloResult && <pre className="result">{helloResult}</pre>}
-      </section>
+        ))}
+      </div>
 
-      <section className="card">
-        <h2>2. 初始化股票信息</h2>
-        <p className="desc">调用 <code>POST /api/stock</code>，异步拉取并保存 A 股股票数据</p>
-        <button onClick={handleSaveStock} disabled={loading}>
-          {loading ? '请求中...' : '初始化股票数据'}
-        </button>
-        {stockResult && <pre className="result">{stockResult}</pre>}
-      </section>
+      {activeTab === 'hello' && (
+        <section className="card">
+          <h2>SayHello 接口</h2>
+          <p className="desc">调用 <code>GET /helloworld/{'{name}'}</code></p>
+          <div className="row">
+            <input
+              type="text"
+              placeholder="请输入名称"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <button onClick={handleSayHello} disabled={loading}>
+              {loading ? '请求中...' : '调用 SayHello'}
+            </button>
+          </div>
+          {helloResult && <pre className="result">{helloResult}</pre>}
+        </section>
+      )}
+
+      {activeTab === 'stock' && (
+        <section className="card">
+          <h2>初始化股票信息</h2>
+          <p className="desc">调用 <code>POST /api/stock</code>，异步拉取并保存 A 股股票数据</p>
+          <button onClick={handleSaveStock} disabled={loading}>
+            {loading ? '请求中...' : '初始化股票数据'}
+          </button>
+          {stockResult && <pre className="result">{stockResult}</pre>}
+        </section>
+      )}
+
+      {activeTab === 'price' && <StockPriceInput />}
     </div>
   )
 }
