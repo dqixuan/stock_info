@@ -53,20 +53,16 @@ func (d *StockDao) GetByStockID(ctx context.Context, stockID string) (*model.Sto
 }
 
 // List 获取股票列表，支持分页
-func (d *StockDao) List(ctx context.Context, page, pageSize int) ([]*model.Stock, int64, error) {
+func (d *StockDao) List(ctx context.Context, page, pageSize int) ([]*model.Stock, error) {
 	var stocks []*model.Stock
-	var total int64
 
 	query := d.db.WithContext(ctx).Model(&model.Stock{})
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
 
 	offset := (page - 1) * pageSize
 	if err := query.Offset(offset).Limit(pageSize).Order("ID ASC").Find(&stocks).Error; err != nil {
-		return nil, 0, err
+		return nil, err
 	}
-	return stocks, total, nil
+	return stocks, nil
 }
 
 // ListByMarket 根据市场获取股票列表

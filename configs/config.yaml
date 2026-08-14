@@ -5,7 +5,7 @@ grpc:
   addr: 0.0.0.0:9000
   timeout: 3s
 mysql:
-  root: "root:123456@tcp(127.0.0.1:3306)/stock"
+  root: "root:123456@tcp(127.0.0.1:3306)/stock?charset=utf8mb4&parseTime=true&loc=Local"
   read_timeout: 3s
   write_timeout: 3s
   max_idle_conns: 10

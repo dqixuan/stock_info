@@ -2,21 +2,28 @@ import akshare as ak
 import json
 import sys
 
+
+def normalize_symbol(symbol: str):
+    raw_symbol = symbol.strip()
+    if raw_symbol.startswith("6"):
+        return raw_symbol, "sh" + raw_symbol
+    elif raw_symbol.startswith(("0", "3")):
+        return raw_symbol, "sz" + raw_symbol
+    elif raw_symbol.startswith(("4", "8", "9")):
+        return raw_symbol, "bj" + raw_symbol
+    return raw_symbol, None
+
 def get_ashare_price(symbol):
     try:
-        # 添加交易所前缀
-        if symbol.startswith("6"):
-            symbol = "sh" + symbol
-        elif symbol.startswith("0") or symbol.startswith("3"):
-            symbol = "sz" + symbol
-        else:
+        raw_symbol, normalized_symbol = normalize_symbol(symbol)
+        if normalized_symbol is None:
             return {"error": "无效的股票代码格式"}
 
         # 使用 akshare 获取 A 股实时行情数据
         stock_zh_a_spot_df = ak.stock_zh_a_spot()
 
-        # 打印出 DataFrame 的头部，查看列名
-        target_stock = stock_zh_a_spot_df[stock_zh_a_spot_df['代码'] == symbol]
+        codes = stock_zh_a_spot_df['代码'].astype(str).str.strip()
+        target_stock = stock_zh_a_spot_df[codes.isin([raw_symbol, normalized_symbol])]
 
         if not target_stock.empty:
             latest_price = target_stock['最新价'].iloc[0]  # 获取最新价
@@ -34,7 +41,7 @@ def get_ashare_price(symbol):
             timestamp = target_stock['时间戳'].iloc[0]  # 获取时间戳
 
             data = {
-                "symbol": symbol,
+                "symbol": normalized_symbol,
                 "name": stock_name,
                 "latest_price": float(latest_price),
                 "change_amount": change_amount,
@@ -50,16 +57,15 @@ def get_ashare_price(symbol):
                 "timestamp": timestamp,
                 "currency": "CNY"
             }
-            print(json.dumps(data, ensure_ascii=False))
-        else:
-            print(json.dumps({"error": f"未能找到股票代码: {symbol}"}, ensure_ascii=False))
+            return data
+        return {"error": f"未能找到股票代码: {normalized_symbol}"}
 
     except Exception as e:
-        print(json.dumps({"error": str(e)}, ensure_ascii=False))
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         stock_symbol = sys.argv[1]
-        get_ashare_price(stock_symbol)
+        print(json.dumps(get_ashare_price(stock_symbol), ensure_ascii=False))
     else:
         print(json.dumps({"error": "请提供一个股票代码 (例如: 600519)"}, ensure_ascii=False))

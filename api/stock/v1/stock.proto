@@ -32,7 +32,17 @@ service StockService {
       body: "*"
     };
   }
+  rpc UpdateStockPrice(UpdateStockPriceRequest) returns (UpdateStockPriceReply) {
+    option (google.api.http) = {
+      post: "/api/v1/stock/price/update"
+      body: "*"
+    };
+  }
 }
+
+message UpdateStockPriceRequest {}
+
+message UpdateStockPriceReply {}
 
 message InitStockInfoRequest {}
 

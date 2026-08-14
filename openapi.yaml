@@ -75,6 +75,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/stock.v1.StockPriceReply'
+    /api/v1/stock/price/update:
+        post:
+            tags:
+                - StockService
+            operationId: StockService_UpdateStockPrice
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/stock.v1.UpdateStockPriceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/stock.v1.UpdateStockPriceReply'
 components:
     schemas:
         health.v1.HealthCheckReply:
@@ -152,6 +170,12 @@ components:
                 marginBalance:
                     type: number
                     format: double
+        stock.v1.UpdateStockPriceReply:
+            type: object
+            properties: {}
+        stock.v1.UpdateStockPriceRequest:
+            type: object
+            properties: {}
 tags:
     - name: Health
     - name: StockService

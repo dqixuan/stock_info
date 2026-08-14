@@ -1,9 +1,12 @@
 package pkg
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
+	"time"
 )
 
 // StockData 结构体，对应 Python 脚本返回的 JSON 字段
@@ -26,31 +29,25 @@ type StockData struct {
 	Error            string  `json:"error,omitempty"`
 }
 
-// MarginData 结构体，用于解析融资融券数据
-type MarginData struct {
-	Date               string  `json:"日期"`
-	MarginBalance      float64 `json:"融资余额"`
-	MarginBuyAmount    float64 `json:"融资买入额"`
-	MarginRepayAmount  float64 `json:"融资偿还额"`
-	ShortSellVolume    float64 `json:"融券余量"`
-	ShortSellAmount    float64 `json:"融券卖出量"`
-	ShortRepayAmount   float64 `json:"融券偿还量"`
-	TotalMarginBalance float64 `json:"融资融券余额"`
-	ShortBalance       float64 `json:"融券余额"`
-}
+func GetStockPrice(symbol string) (*StockData, error) {
+	now := time.Now()
+	scriptPath, err := resolveScriptPath("get_stock_price.py")
+	if err != nil {
+		return nil, err
+	}
 
-func GetStockData(symbol string) (*StockData, error) {
 	// 调用 Python 脚本，传入股票代码
-	cmd := exec.Command("python3", "../scripts/get_stock_price.py", symbol)
+	cmd := exec.Command("python3", scriptPath, symbol)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
 
 	// 执行命令并获取标准输出
 	output, err := cmd.Output()
 	if err != nil {
-		// 捕获 Python 脚本的错误输出（stderr）
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			return nil, fmt.Errorf("脚本执行失败: %s\nStderr: %s", err.Error(), string(exitErr.Stderr))
-		}
-		return nil, fmt.Errorf("脚本执行失败: %w", err)
+		return nil, fmt.Errorf("脚本执行失败: %w\nStderr: %s", err, strings.TrimSpace(stderr.String()))
+	}
+	if strings.TrimSpace(string(output)) == "" {
+		return nil, fmt.Errorf("脚本未返回内容: symbol=%s stderr=%s", symbol, strings.TrimSpace(stderr.String()))
 	}
 
 	// 解析 JSON 输出
@@ -63,7 +60,7 @@ func GetStockData(symbol string) (*StockData, error) {
 	if stockData.Error != "" {
 		return nil, fmt.Errorf("脚本返回错误: %s", stockData.Error)
 	}
-
+	fmt.Printf("GetStockPrice for %s cost time: %d(s)\n", symbol, int(time.Since(now).Seconds()))
 	return &stockData, nil
 }
 

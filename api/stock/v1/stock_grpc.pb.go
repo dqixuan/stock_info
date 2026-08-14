@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	StockService_GetStockList_FullMethodName  = "/stock.v1.StockService/GetStockList"
-	StockService_AddStockPrice_FullMethodName = "/stock.v1.StockService/AddStockPrice"
-	StockService_InitStockInfo_FullMethodName = "/stock.v1.StockService/InitStockInfo"
+	StockService_GetStockList_FullMethodName     = "/stock.v1.StockService/GetStockList"
+	StockService_AddStockPrice_FullMethodName    = "/stock.v1.StockService/AddStockPrice"
+	StockService_InitStockInfo_FullMethodName    = "/stock.v1.StockService/InitStockInfo"
+	StockService_UpdateStockPrice_FullMethodName = "/stock.v1.StockService/UpdateStockPrice"
 )
 
 // StockServiceClient is the client API for StockService service.
@@ -36,6 +37,7 @@ type StockServiceClient interface {
 	AddStockPrice(ctx context.Context, in *StockPriceRequest, opts ...grpc.CallOption) (*StockPriceReply, error)
 	// 初始化股票信息
 	InitStockInfo(ctx context.Context, in *InitStockInfoRequest, opts ...grpc.CallOption) (*InitStockInfoReply, error)
+	UpdateStockPrice(ctx context.Context, in *UpdateStockPriceRequest, opts ...grpc.CallOption) (*UpdateStockPriceReply, error)
 }
 
 type stockServiceClient struct {
@@ -76,6 +78,16 @@ func (c *stockServiceClient) InitStockInfo(ctx context.Context, in *InitStockInf
 	return out, nil
 }
 
+func (c *stockServiceClient) UpdateStockPrice(ctx context.Context, in *UpdateStockPriceRequest, opts ...grpc.CallOption) (*UpdateStockPriceReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateStockPriceReply)
+	err := c.cc.Invoke(ctx, StockService_UpdateStockPrice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StockServiceServer is the server API for StockService service.
 // All implementations must embed UnimplementedStockServiceServer
 // for forward compatibility.
@@ -88,6 +100,7 @@ type StockServiceServer interface {
 	AddStockPrice(context.Context, *StockPriceRequest) (*StockPriceReply, error)
 	// 初始化股票信息
 	InitStockInfo(context.Context, *InitStockInfoRequest) (*InitStockInfoReply, error)
+	UpdateStockPrice(context.Context, *UpdateStockPriceRequest) (*UpdateStockPriceReply, error)
 	mustEmbedUnimplementedStockServiceServer()
 }
 
@@ -106,6 +119,9 @@ func (UnimplementedStockServiceServer) AddStockPrice(context.Context, *StockPric
 }
 func (UnimplementedStockServiceServer) InitStockInfo(context.Context, *InitStockInfoRequest) (*InitStockInfoReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method InitStockInfo not implemented")
+}
+func (UnimplementedStockServiceServer) UpdateStockPrice(context.Context, *UpdateStockPriceRequest) (*UpdateStockPriceReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateStockPrice not implemented")
 }
 func (UnimplementedStockServiceServer) mustEmbedUnimplementedStockServiceServer() {}
 func (UnimplementedStockServiceServer) testEmbeddedByValue()                      {}
@@ -182,6 +198,24 @@ func _StockService_InitStockInfo_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StockService_UpdateStockPrice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateStockPriceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StockServiceServer).UpdateStockPrice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StockService_UpdateStockPrice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StockServiceServer).UpdateStockPrice(ctx, req.(*UpdateStockPriceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StockService_ServiceDesc is the grpc.ServiceDesc for StockService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -200,6 +234,10 @@ var StockService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "InitStockInfo",
 			Handler:    _StockService_InitStockInfo_Handler,
+		},
+		{
+			MethodName: "UpdateStockPrice",
+			Handler:    _StockService_UpdateStockPrice_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

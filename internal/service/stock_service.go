@@ -21,6 +21,25 @@ type StockService struct {
 	stockPriceDao *dao.StockPriceDao
 }
 
+func NewStockService(
+	data *data.Data,
+	stockDao *dao.StockDao,
+	stockPriceDao *dao.StockPriceDao,
+) *StockService {
+	return &StockService{
+		mysql:         data.DB(),
+		stockDao:      stockDao,
+		stockPriceDao: stockPriceDao,
+	}
+}
+
+var _ v1.StockServiceHTTPServer = (*StockService)(nil)
+
+const (
+	pageSize    = 100
+	workerCount = 5
+)
+
 func (s StockService) InitStockInfo(ctx context.Context, request *v1.InitStockInfoRequest) (*v1.InitStockInfoReply, error) {
 	fn := "InitStockInfo"
 	go func() {
@@ -67,7 +86,6 @@ func (s StockService) AddStockPrice(ctx context.Context, request *v1.StockPriceR
 		Volume:        request.Volume,
 		Amount:        request.Amount,
 		ChangePercent: request.ChangePercent,
-		MarginBalance: request.MarginBalance,
 	}
 
 	if err := s.stockPriceDao.Upsert(ctx, price); err != nil {
@@ -82,16 +100,99 @@ func (s StockService) GetStockList(ctx context.Context, request *v1.StockInfoReq
 	panic("implement me")
 }
 
-func NewStockService(
-	data *data.Data,
-	stockDao *dao.StockDao,
-	stockPriceDao *dao.StockPriceDao,
-) *StockService {
-	return &StockService{
-		mysql:         data.DB(),
-		stockDao:      stockDao,
-		stockPriceDao: stockPriceDao,
-	}
+func (s StockService) UpdateStockPrice(ctx context.Context, request *v1.UpdateStockPriceRequest) (*v1.UpdateStockPriceReply, error) {
+
+	fn := "UpdateStockPrice"
+	go func() {
+		ctxWithoutCancel := context.WithoutCancel(ctx)
+		page := 1
+		for {
+			stocks, err := s.stockDao.List(ctxWithoutCancel, page, pageSize)
+			if err != nil {
+				fmt.Println(fn, "list stocks err:", err)
+				return
+			}
+			if len(stocks) == 0 {
+				return
+			}
+
+			prices := make([]*model.StockPrice, 0, len(stocks))
+
+			tradeDate := time.Now().Format(time.DateOnly)
+			for _, stock := range stocks {
+				if stock == nil || stock.StockID == "" {
+					continue
+				}
+
+				stockData, err := pkg.GetStockPrice(stock.StockID)
+				if err != nil {
+					fmt.Println(fn, "get stock data err:", stock.StockID, err)
+					continue
+				}
+
+				margin, err := pkg.GetStockMarginByDate(stock.StockID, compactTradeDate(tradeDate))
+				if err != nil {
+					fmt.Println(fn, "get stock margin err:", stock.StockID, err)
+					margin = nil
+				}
+
+				price := &model.StockPrice{
+					StockID:            stock.StockID,
+					TradeDate:          tradeDate,
+					OpenPrice:          stockData.OpenPrice,
+					ClosePrice:         stockData.LatestPrice,
+					HighPrice:          stockData.HighPrice,
+					LowPrice:           stockData.LowPrice,
+					Volume:             int64(stockData.Volume),
+					Amount:             stockData.Turnover,
+					ChangePercent:      stockData.ChangePercentage,
+					FinanceBalance:     marginValue(margin, func(m *pkg.MarginData) float64 { return m.MarginBalance }),
+					FinanceBuy:         marginValue(margin, func(m *pkg.MarginData) float64 { return m.MarginBuyAmount }),
+					FinanceRepay:       marginValue(margin, func(m *pkg.MarginData) float64 { return m.MarginRepayAmount }),
+					SecurityLendVolume: marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortSellVolume }),
+					SecurityLendSell:   marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortSellAmount }),
+					SecurityLendRepay:  marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortRepayAmount }),
+				}
+				fmt.Printf("price info: %+v\n", price)
+				time.Sleep(20 * time.Second)
+				prices = append(prices, price)
+
+			}
+
+			if len(prices) > 0 {
+				if err := s.stockPriceDao.BatchUpsert(ctxWithoutCancel, prices); err != nil {
+					fmt.Println(fn, "batch upsert err:", err)
+					return
+				}
+			}
+			page++
+			prices = prices[:0] // Clear the slice for the next iteration
+		}
+	}()
+
+	return &v1.UpdateStockPriceReply{}, nil
 }
 
-var _ v1.StockServiceHTTPServer = (*StockService)(nil)
+func compactTradeDate(tradeDate string) string {
+	return strings.ReplaceAll(tradeDate, "-", "")
+}
+
+func marginBalanceValue(margin *pkg.MarginData) float64 {
+	if margin == nil {
+		return 0
+	}
+	if margin.TotalMarginBalance != 0 {
+		return margin.TotalMarginBalance
+	}
+	if margin.ShortBalance != 0 {
+		return margin.MarginBalance + margin.ShortBalance
+	}
+	return margin.MarginBalance
+}
+
+func marginValue(margin *pkg.MarginData, getter func(*pkg.MarginData) float64) float64 {
+	if margin == nil {
+		return 0
+	}
+	return getter(margin)
+}
