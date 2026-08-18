@@ -130,28 +130,28 @@ func (s StockService) UpdateStockPrice(ctx context.Context, request *v1.UpdateSt
 					continue
 				}
 
-				margin, err := pkg.GetStockMarginByDate(stock.StockID, compactTradeDate(tradeDate))
-				if err != nil {
-					fmt.Println(fn, "get stock margin err:", stock.StockID, err)
-					margin = nil
-				}
+				//margin, err := pkg.GetStockMarginByDate(stock.StockID, compactTradeDate(tradeDate))
+				//if err != nil {
+				//	fmt.Println(fn, "get stock margin err:", stock.StockID, err)
+				//	margin = nil
+				//}
 
 				price := &model.StockPrice{
-					StockID:            stock.StockID,
-					TradeDate:          tradeDate,
-					OpenPrice:          stockData.OpenPrice,
-					ClosePrice:         stockData.LatestPrice,
-					HighPrice:          stockData.HighPrice,
-					LowPrice:           stockData.LowPrice,
-					Volume:             int64(stockData.Volume),
-					Amount:             stockData.Turnover,
-					ChangePercent:      stockData.ChangePercentage,
-					FinanceBalance:     marginValue(margin, func(m *pkg.MarginData) float64 { return m.MarginBalance }),
-					FinanceBuy:         marginValue(margin, func(m *pkg.MarginData) float64 { return m.MarginBuyAmount }),
-					FinanceRepay:       marginValue(margin, func(m *pkg.MarginData) float64 { return m.MarginRepayAmount }),
-					SecurityLendVolume: marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortSellVolume }),
-					SecurityLendSell:   marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortSellAmount }),
-					SecurityLendRepay:  marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortRepayAmount }),
+					StockID:       stock.StockID,
+					TradeDate:     tradeDate,
+					OpenPrice:     stockData.OpenPrice,
+					ClosePrice:    stockData.LatestPrice,
+					HighPrice:     stockData.HighPrice,
+					LowPrice:      stockData.LowPrice,
+					Volume:        int64(stockData.Volume),
+					Amount:        stockData.Turnover,
+					ChangePercent: stockData.ChangePercentage,
+					//FinanceBalance:     marginValue(margin, func(m *pkg.MarginData) float64 { return m.MarginBalance }),
+					//FinanceBuy:         marginValue(margin, func(m *pkg.MarginData) float64 { return m.MarginBuyAmount }),
+					//FinanceRepay:       marginValue(margin, func(m *pkg.MarginData) float64 { return m.MarginRepayAmount }),
+					//SecurityLendVolume: marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortSellVolume }),
+					//SecurityLendSell:   marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortSellAmount }),
+					//SecurityLendRepay:  marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortRepayAmount }),
 				}
 				fmt.Printf("price info: %+v\n", price)
 				time.Sleep(20 * time.Second)

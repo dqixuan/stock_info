@@ -29,6 +29,7 @@ type StockData struct {
 	Error            string  `json:"error,omitempty"`
 }
 
+// GetStockPrice 调用 Python 脚本获取单只股票实时行情
 func GetStockPrice(symbol string) (*StockData, error) {
 	now := time.Now()
 	scriptPath, err := resolveScriptPath("get_stock_price.py")
@@ -40,6 +41,9 @@ func GetStockPrice(symbol string) (*StockData, error) {
 	cmd := exec.Command("python3", scriptPath, symbol)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
+
+	// 关键：清掉代理环境变量，避免 requests 走不可用的代理访问东财
+	cmd.Env = stripProxyEnv()
 
 	// 执行命令并获取标准输出
 	output, err := cmd.Output()
@@ -64,25 +68,23 @@ func GetStockPrice(symbol string) (*StockData, error) {
 	return &stockData, nil
 }
 
-func printStockData(stock *StockData) {
-	fmt.Println("========================================")
-	fmt.Printf("  股票代码: %s\n", stock.Symbol)
-	fmt.Printf("  股票名称: %s\n", stock.Name)
-	fmt.Println("========================================")
-	fmt.Printf("  最新价格: %.2f %s\n", stock.LatestPrice, stock.Currency)
-	fmt.Printf("  涨跌额:   %.2f\n", stock.ChangeAmount)
-	fmt.Printf("  涨跌幅:   %.3f%%\n", stock.ChangePercentage)
-	fmt.Println("----------------------------------------")
-	fmt.Printf("  买入价:   %.2f\n", stock.BuyPrice)
-	fmt.Printf("  卖出价:   %.2f\n", stock.SellPrice)
-	fmt.Println("----------------------------------------")
-	fmt.Printf("  昨收价:   %.2f\n", stock.LastClose)
-	fmt.Printf("  今开价:   %.2f\n", stock.OpenPrice)
-	fmt.Printf("  最高价:   %.2f\n", stock.HighPrice)
-	fmt.Printf("  最低价:   %.2f\n", stock.LowPrice)
-	fmt.Println("----------------------------------------")
-	fmt.Printf("  成交量:   %.0f\n", stock.Volume)
-	fmt.Printf("  成交额:   %.2f\n", stock.Turnover)
-	fmt.Printf("  时间戳:   %s\n", stock.Timestamp)
-	fmt.Println("========================================")
+// stripProxyEnv 返回清理掉所有代理变量后的环境变量列表
+func stripProxyEnv() []string {
+	var out []string
+	for _, kv := range osEnviron() {
+		key := kv
+		if i := strings.IndexByte(kv, '='); i >= 0 {
+			key = kv[:i]
+		}
+		if strings.Contains(strings.ToLower(key), "proxy") {
+			continue // 丢弃 http_proxy / all_proxy / no_proxy 等全部代理变量
+		}
+		out = append(out, kv)
+	}
+	return out
+}
+
+// osEnviron 封装 os.Environ()，便于测试替换
+func osEnviron() []string {
+	return osEnvironImpl()
 }
