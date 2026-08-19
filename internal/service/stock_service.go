@@ -154,7 +154,7 @@ func (s StockService) UpdateStockPrice(ctx context.Context, request *v1.UpdateSt
 					//SecurityLendRepay:  marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortRepayAmount }),
 				}
 				fmt.Printf("price info: %+v\n", price)
-				time.Sleep(20 * time.Second)
+				time.Sleep(2 * time.Second)
 				prices = append(prices, price)
 
 			}

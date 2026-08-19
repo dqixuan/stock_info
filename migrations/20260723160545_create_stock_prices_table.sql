@@ -27,5 +27,5 @@ CREATE TABLE IF NOT EXISTS stock_price (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS stock_prices;
+DROP TABLE IF EXISTS stock_price;
 -- +goose StatementEnd

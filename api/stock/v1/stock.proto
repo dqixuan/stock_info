@@ -32,12 +32,15 @@ service StockService {
       body: "*"
     };
   }
+  // 自动更新股票价格信息
   rpc UpdateStockPrice(UpdateStockPriceRequest) returns (UpdateStockPriceReply) {
     option (google.api.http) = {
       post: "/api/v1/stock/price/update"
       body: "*"
     };
   }
+  // 初始化同花顺行业、概念信息
+  
 }
 
 message UpdateStockPriceRequest {}

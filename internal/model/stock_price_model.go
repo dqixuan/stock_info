@@ -26,5 +26,5 @@ type StockPrice struct {
 
 // TableName 指定表名
 func (StockPrice) TableName() string {
-	return "stock_prices"
+	return "stock_price"
 }
