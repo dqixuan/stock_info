@@ -10,3 +10,4 @@ mysql:
   write_timeout: 3s
   max_idle_conns: 10
   max_open_conns: 100
+  log_level: 1 # 1 silent 2 error 3 warn 4 info

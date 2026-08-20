@@ -3,6 +3,7 @@ module github.com/dqixuan/stock_info
 go 1.23.0
 
 require (
+	github.com/deckarep/golang-set/v2 v2.9.0
 	github.com/go-kratos/kratos/v2 v2.7.3
 	github.com/google/wire v0.5.0
 	github.com/mozillazg/go-pinyin v0.21.0
@@ -38,6 +39,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	go.mongodb.org/mongo-driver v1.17.4 // indirect
 	go.opentelemetry.io/otel v1.16.0 // indirect
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
 	go.opentelemetry.io/otel/trace v1.16.0 // indirect

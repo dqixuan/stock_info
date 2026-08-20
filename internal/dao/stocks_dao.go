@@ -65,6 +65,13 @@ func (d *StockDao) List(ctx context.Context, page, pageSize int) ([]*model.Stock
 	return stocks, nil
 }
 
+// SelectAllStockIDs return a slice of all stock id;
+func (d *StockDao) SelectAllStockIDs(ctx context.Context) ([]string, error) {
+	var stockIDs []string
+	err := d.db.WithContext(ctx).Model(&model.Stock{}).Select("STOCK_ID").Find(&stockIDs).Error
+	return stockIDs, err
+}
+
 // ListByMarket 根据市场获取股票列表
 func (d *StockDao) ListByMarket(ctx context.Context, market string, page, pageSize int) ([]*model.Stock, int64, error) {
 	var stocks []*model.Stock

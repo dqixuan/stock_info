@@ -29,6 +29,7 @@ type Mysql struct {
 	WriterTimeout time.Duration `json:"write_timeout" mapstructure:"write_timeout"`
 	MaxIdleConns  int           `json:"max_idle_conns" mapstructure:"max_idle_conns"`
 	MaxOpenConns  int           `json:"max_open_conns" mapstructure:"max_open_conns"`
+	LogLevel      int           `json:"log_level" mapstructure:"log_level"`
 }
 
 var GlobalConfig *Config

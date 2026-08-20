@@ -45,7 +45,7 @@ func initDB(c *configs.Mysql, loggerHelper log.Logger) (*gorm.DB, error) {
 	}
 
 	db, err := gorm.Open(mysql.Open(c.Root), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.LogLevel(c.LogLevel)),
 	})
 
 	if err != nil {

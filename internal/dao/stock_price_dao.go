@@ -162,3 +162,14 @@ func (d *StockPriceDao) GetLatestByStockID(ctx context.Context, stockID string) 
 	}
 	return &price, nil
 }
+
+// SelectStockIDsByDate 按日期获取已记录价格的股票ID
+func (d *StockPriceDao) SelectStockIDsByDate(ctx context.Context, stockDate string) ([]string, error) {
+	var stockIDs []string
+	err := d.db.WithContext(ctx).
+		Model(&model.StockPrice{}).
+		Where("TRADE_DATE = ?", stockDate).
+		Select("STOCK_ID").
+		Find(&stockIDs).Error
+	return stockIDs, err
+}

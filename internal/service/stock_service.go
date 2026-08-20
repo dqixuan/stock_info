@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	set "github.com/deckarep/golang-set/v2"
+
 	v1 "github.com/dqixuan/stock_info/api/stock/v1"
 	"github.com/dqixuan/stock_info/internal/dao"
 	"github.com/dqixuan/stock_info/internal/data"
@@ -103,33 +105,53 @@ func (s StockService) GetStockList(ctx context.Context, request *v1.StockInfoReq
 	panic("implement me")
 }
 
+// UpdateStockPrice 每个交易日， 更没有记录价格信息的股票信息
+// curl -X POST http://localhost:8000/api/v1/stock/price/update -H "Content-Type: application/json" -d '{}'
 func (s StockService) UpdateStockPrice(ctx context.Context, request *v1.UpdateStockPriceRequest) (*v1.UpdateStockPriceReply, error) {
-
 	fn := "UpdateStockPrice"
 	go func() {
 		ctxWithoutCancel := context.WithoutCancel(ctx)
-		page := 1
-		for {
-			stocks, err := s.stockDao.List(ctxWithoutCancel, page, pageSize)
-			if err != nil {
-				fmt.Println(fn, "list stocks err:", err)
-				return
-			}
-			if len(stocks) == 0 {
-				return
-			}
+		allStockIDs, err := s.stockDao.SelectAllStockIDs(ctxWithoutCancel)
+		if err != nil {
+			fmt.Println(fn, "SelectAllStockIDs failed err:", err)
+			return
+		}
+		fmt.Println("fn:", fn, ", allStockIDs len:", len(allStockIDs))
+		recordedStockIDs, err := s.stockPriceDao.SelectStockIDsByDate(ctxWithoutCancel, time.Now().Format(time.DateOnly))
+		if err != nil {
+			fmt.Println(fn, "SelectStockIDsByDate failed err:", err)
+			return
+		}
+		fmt.Println("fn:", fn, ", recordedStockIDs len:", len(recordedStockIDs))
 
-			prices := make([]*model.StockPrice, 0, len(stocks))
+		setA := set.NewSet(allStockIDs...)
+		setB := set.NewSet(recordedStockIDs...)
+
+		// 2. 求差集 (在 A 中，不在 B 中)
+		// 注意：Difference 方法会自动去重
+		diffSet := setA.Difference(setB)
+
+		// 3. 将 Set 转换回 []string
+		diffSlice := diffSet.ToSlice()
+		fmt.Println(fn, "diffSlice:", diffSlice)
+		for i := 0; i < len(diffSlice); i += 100 {
+			var stockIDs []string
+			if i+100 <= len(diffSlice) {
+				stockIDs = diffSlice[i : i+100]
+			} else {
+				stockIDs = diffSlice[i:]
+			}
+			prices := make([]*model.StockPrice, 0, len(stockIDs))
 
 			tradeDate := time.Now().Format(time.DateOnly)
-			for _, stock := range stocks {
-				if stock == nil || stock.StockID == "" {
+			for _, stockID := range stockIDs {
+				if stockID == "" {
 					continue
 				}
 
-				stockData, err := pkg.GetStockPrice(stock.StockID)
+				stockData, err := pkg.GetStockPrice(stockID)
 				if err != nil {
-					fmt.Println(fn, "get stock data err:", stock.StockID, err)
+					fmt.Println(fn, "get stock data err:", stockID, err)
 					continue
 				}
 
@@ -140,7 +162,7 @@ func (s StockService) UpdateStockPrice(ctx context.Context, request *v1.UpdateSt
 				//}
 
 				price := &model.StockPrice{
-					StockID:       stock.StockID,
+					StockID:       stockID,
 					TradeDate:     tradeDate,
 					OpenPrice:     stockData.OpenPrice,
 					ClosePrice:    stockData.LatestPrice,
@@ -159,17 +181,16 @@ func (s StockService) UpdateStockPrice(ctx context.Context, request *v1.UpdateSt
 				fmt.Printf("price info: %+v\n", price)
 				//time.Sleep(2 * time.Second)
 				prices = append(prices, price)
-
 			}
 
 			if len(prices) > 0 {
-				if err := s.stockPriceDao.BatchUpsert(ctxWithoutCancel, prices); err != nil {
+				if err = s.stockPriceDao.BatchUpsert(ctxWithoutCancel, prices); err != nil {
 					fmt.Println(fn, "batch upsert err:", err)
 					return
 				}
 			}
-			page++
-			prices = prices[:0] // Clear the slice for the next iteration
+
+			prices = prices[:0]
 		}
 	}()
 
