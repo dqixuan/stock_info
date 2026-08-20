@@ -34,7 +34,8 @@ func wireApp(config *configs.Config, logger log.Logger) (*kratos.App, func(), er
 	}
 	stockDao := dao.NewStockDao(dataData)
 	stockPriceDao := dao.NewStockPriceDao(dataData)
-	stockService := service.NewStockService(dataData, stockDao, stockPriceDao)
+	industryDao := dao.NewIndustryDao(dataData)
+	stockService := service.NewStockService(dataData, stockDao, stockPriceDao, industryDao)
 	healthService := service.NewHealthService()
 	server3 := server.NewHTTPServer(httpServer, stockService, healthService)
 	app := newApp(logger, server2, server3)

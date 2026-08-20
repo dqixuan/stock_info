@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	StockService_GetStockList_FullMethodName     = "/stock.v1.StockService/GetStockList"
-	StockService_AddStockPrice_FullMethodName    = "/stock.v1.StockService/AddStockPrice"
-	StockService_InitStockInfo_FullMethodName    = "/stock.v1.StockService/InitStockInfo"
-	StockService_UpdateStockPrice_FullMethodName = "/stock.v1.StockService/UpdateStockPrice"
+	StockService_GetStockList_FullMethodName             = "/stock.v1.StockService/GetStockList"
+	StockService_AddStockPrice_FullMethodName            = "/stock.v1.StockService/AddStockPrice"
+	StockService_InitStockInfo_FullMethodName            = "/stock.v1.StockService/InitStockInfo"
+	StockService_UpdateStockPrice_FullMethodName         = "/stock.v1.StockService/UpdateStockPrice"
+	StockService_InitStockIndustryConcept_FullMethodName = "/stock.v1.StockService/InitStockIndustryConcept"
 )
 
 // StockServiceClient is the client API for StockService service.
@@ -37,7 +38,10 @@ type StockServiceClient interface {
 	AddStockPrice(ctx context.Context, in *StockPriceRequest, opts ...grpc.CallOption) (*StockPriceReply, error)
 	// 初始化股票信息
 	InitStockInfo(ctx context.Context, in *InitStockInfoRequest, opts ...grpc.CallOption) (*InitStockInfoReply, error)
+	// 自动更新股票价格信息
 	UpdateStockPrice(ctx context.Context, in *UpdateStockPriceRequest, opts ...grpc.CallOption) (*UpdateStockPriceReply, error)
+	// 初始化同花顺行业、概念信息
+	InitStockIndustryConcept(ctx context.Context, in *InitStockIndustryConceptRequest, opts ...grpc.CallOption) (*InitStockIndustryConceptReply, error)
 }
 
 type stockServiceClient struct {
@@ -88,6 +92,16 @@ func (c *stockServiceClient) UpdateStockPrice(ctx context.Context, in *UpdateSto
 	return out, nil
 }
 
+func (c *stockServiceClient) InitStockIndustryConcept(ctx context.Context, in *InitStockIndustryConceptRequest, opts ...grpc.CallOption) (*InitStockIndustryConceptReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InitStockIndustryConceptReply)
+	err := c.cc.Invoke(ctx, StockService_InitStockIndustryConcept_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StockServiceServer is the server API for StockService service.
 // All implementations must embed UnimplementedStockServiceServer
 // for forward compatibility.
@@ -100,7 +114,10 @@ type StockServiceServer interface {
 	AddStockPrice(context.Context, *StockPriceRequest) (*StockPriceReply, error)
 	// 初始化股票信息
 	InitStockInfo(context.Context, *InitStockInfoRequest) (*InitStockInfoReply, error)
+	// 自动更新股票价格信息
 	UpdateStockPrice(context.Context, *UpdateStockPriceRequest) (*UpdateStockPriceReply, error)
+	// 初始化同花顺行业、概念信息
+	InitStockIndustryConcept(context.Context, *InitStockIndustryConceptRequest) (*InitStockIndustryConceptReply, error)
 	mustEmbedUnimplementedStockServiceServer()
 }
 
@@ -122,6 +139,9 @@ func (UnimplementedStockServiceServer) InitStockInfo(context.Context, *InitStock
 }
 func (UnimplementedStockServiceServer) UpdateStockPrice(context.Context, *UpdateStockPriceRequest) (*UpdateStockPriceReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateStockPrice not implemented")
+}
+func (UnimplementedStockServiceServer) InitStockIndustryConcept(context.Context, *InitStockIndustryConceptRequest) (*InitStockIndustryConceptReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method InitStockIndustryConcept not implemented")
 }
 func (UnimplementedStockServiceServer) mustEmbedUnimplementedStockServiceServer() {}
 func (UnimplementedStockServiceServer) testEmbeddedByValue()                      {}
@@ -216,6 +236,24 @@ func _StockService_UpdateStockPrice_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StockService_InitStockIndustryConcept_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitStockIndustryConceptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StockServiceServer).InitStockIndustryConcept(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StockService_InitStockIndustryConcept_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StockServiceServer).InitStockIndustryConcept(ctx, req.(*InitStockIndustryConceptRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StockService_ServiceDesc is the grpc.ServiceDesc for StockService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -238,6 +276,10 @@ var StockService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateStockPrice",
 			Handler:    _StockService_UpdateStockPrice_Handler,
+		},
+		{
+			MethodName: "InitStockIndustryConcept",
+			Handler:    _StockService_InitStockIndustryConcept_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

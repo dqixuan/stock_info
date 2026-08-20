@@ -40,8 +40,17 @@ service StockService {
     };
   }
   // 初始化同花顺行业、概念信息
-  
+  rpc InitStockIndustryConcept(InitStockIndustryConceptRequest) returns (InitStockIndustryConceptReply) {
+    option (google.api.http) = {
+      post: "/api/v1/stock/industry_concept/init"
+      body: "*"
+    };
+  }
 }
+
+message InitStockIndustryConceptRequest {}
+
+message InitStockIndustryConceptReply {}
 
 message UpdateStockPriceRequest {}
 

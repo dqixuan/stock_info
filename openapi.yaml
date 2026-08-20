@@ -37,6 +37,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/stock.v1.StockInfoReply'
+    /api/v1/stock/industry_concept/init:
+        post:
+            tags:
+                - StockService
+            description: 初始化同花顺行业、概念信息
+            operationId: StockService_InitStockIndustryConcept
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/stock.v1.InitStockIndustryConceptRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/stock.v1.InitStockIndustryConceptReply'
     /api/v1/stock/init:
         post:
             tags:
@@ -79,6 +98,7 @@ paths:
         post:
             tags:
                 - StockService
+            description: 自动更新股票价格信息
             operationId: StockService_UpdateStockPrice
             requestBody:
                 content:
@@ -100,6 +120,12 @@ components:
             properties:
                 result:
                     type: string
+        stock.v1.InitStockIndustryConceptReply:
+            type: object
+            properties: {}
+        stock.v1.InitStockIndustryConceptRequest:
+            type: object
+            properties: {}
         stock.v1.InitStockInfoReply:
             type: object
             properties: {}

@@ -19,17 +19,20 @@ type StockService struct {
 	mysql         *gorm.DB
 	stockDao      *dao.StockDao
 	stockPriceDao *dao.StockPriceDao
+	industryDao   *dao.IndustryDao
 }
 
 func NewStockService(
 	data *data.Data,
 	stockDao *dao.StockDao,
 	stockPriceDao *dao.StockPriceDao,
+	industryDao *dao.IndustryDao,
 ) *StockService {
 	return &StockService{
 		mysql:         data.DB(),
 		stockDao:      stockDao,
 		stockPriceDao: stockPriceDao,
+		industryDao:   industryDao,
 	}
 }
 
@@ -154,7 +157,7 @@ func (s StockService) UpdateStockPrice(ctx context.Context, request *v1.UpdateSt
 					//SecurityLendRepay:  marginValue(margin, func(m *pkg.MarginData) float64 { return m.ShortRepayAmount }),
 				}
 				fmt.Printf("price info: %+v\n", price)
-				time.Sleep(2 * time.Second)
+				//time.Sleep(2 * time.Second)
 				prices = append(prices, price)
 
 			}
@@ -195,4 +198,37 @@ func marginValue(margin *pkg.MarginData, getter func(*pkg.MarginData) float64) f
 		return 0
 	}
 	return getter(margin)
+}
+
+// InitStockIndustryConcept 初始化股票行业概念数据
+// curl -X POST http://localhost:8000/api/v1/stock/industry_concept/init   -H "Content-Type: application/json"   -d '{}'
+func (s StockService) InitStockIndustryConcept(ctx context.Context, request *v1.InitStockIndustryConceptRequest) (*v1.InitStockIndustryConceptReply, error) {
+	fn := "InitStockIndustryConcept"
+	ctxWithoutCancel := context.WithoutCancel(ctx)
+	go func() {
+		industryInfo, err := pkg.GetTHSBoards("all")
+		if err != nil {
+			fmt.Printf("%s GetTHSBoards failed, err:%v\n", fn, err)
+			return
+		}
+		var industries []*model.Industry
+		now := time.Now()
+		for _, info := range industryInfo.Data {
+
+			industries = append(industries, &model.Industry{
+				IndustryID: info.Code,
+				Name:       info.Name,
+				Count:      0,
+				CreatedAt:  now,
+				UpdatedAt:  now,
+			})
+		}
+		if len(industries) > 0 {
+			if err = s.industryDao.BatchInsert(ctxWithoutCancel, industries); err != nil {
+				fmt.Println(fn, "batch upsert err:", err)
+				return
+			}
+		}
+	}()
+	return &v1.InitStockIndustryConceptReply{}, nil
 }

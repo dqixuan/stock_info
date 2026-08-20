@@ -21,6 +21,7 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationStockServiceAddStockPrice = "/stock.v1.StockService/AddStockPrice"
 const OperationStockServiceGetStockList = "/stock.v1.StockService/GetStockList"
+const OperationStockServiceInitStockIndustryConcept = "/stock.v1.StockService/InitStockIndustryConcept"
 const OperationStockServiceInitStockInfo = "/stock.v1.StockService/InitStockInfo"
 const OperationStockServiceUpdateStockPrice = "/stock.v1.StockService/UpdateStockPrice"
 
@@ -29,8 +30,11 @@ type StockServiceHTTPServer interface {
 	AddStockPrice(context.Context, *StockPriceRequest) (*StockPriceReply, error)
 	// GetStockList 查询股票列表
 	GetStockList(context.Context, *StockInfoRequest) (*StockInfoReply, error)
+	// InitStockIndustryConcept 初始化同花顺行业、概念信息
+	InitStockIndustryConcept(context.Context, *InitStockIndustryConceptRequest) (*InitStockIndustryConceptReply, error)
 	// InitStockInfo 初始化股票信息
 	InitStockInfo(context.Context, *InitStockInfoRequest) (*InitStockInfoReply, error)
+	// UpdateStockPrice 自动更新股票价格信息
 	UpdateStockPrice(context.Context, *UpdateStockPriceRequest) (*UpdateStockPriceReply, error)
 }
 
@@ -40,6 +44,7 @@ func RegisterStockServiceHTTPServer(s *http.Server, srv StockServiceHTTPServer) 
 	r.POST("/api/v1/stock/price", _StockService_AddStockPrice0_HTTP_Handler(srv))
 	r.POST("/api/v1/stock/init", _StockService_InitStockInfo0_HTTP_Handler(srv))
 	r.POST("/api/v1/stock/price/update", _StockService_UpdateStockPrice0_HTTP_Handler(srv))
+	r.POST("/api/v1/stock/industry_concept/init", _StockService_InitStockIndustryConcept0_HTTP_Handler(srv))
 }
 
 func _StockService_GetStockList0_HTTP_Handler(srv StockServiceHTTPServer) func(ctx http.Context) error {
@@ -130,13 +135,38 @@ func _StockService_UpdateStockPrice0_HTTP_Handler(srv StockServiceHTTPServer) fu
 	}
 }
 
+func _StockService_InitStockIndustryConcept0_HTTP_Handler(srv StockServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in InitStockIndustryConceptRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationStockServiceInitStockIndustryConcept)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.InitStockIndustryConcept(ctx, req.(*InitStockIndustryConceptRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*InitStockIndustryConceptReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type StockServiceHTTPClient interface {
 	// AddStockPrice 增加股票价格信息
 	AddStockPrice(ctx context.Context, req *StockPriceRequest, opts ...http.CallOption) (rsp *StockPriceReply, err error)
 	// GetStockList 查询股票列表
 	GetStockList(ctx context.Context, req *StockInfoRequest, opts ...http.CallOption) (rsp *StockInfoReply, err error)
+	// InitStockIndustryConcept 初始化同花顺行业、概念信息
+	InitStockIndustryConcept(ctx context.Context, req *InitStockIndustryConceptRequest, opts ...http.CallOption) (rsp *InitStockIndustryConceptReply, err error)
 	// InitStockInfo 初始化股票信息
 	InitStockInfo(ctx context.Context, req *InitStockInfoRequest, opts ...http.CallOption) (rsp *InitStockInfoReply, err error)
+	// UpdateStockPrice 自动更新股票价格信息
 	UpdateStockPrice(ctx context.Context, req *UpdateStockPriceRequest, opts ...http.CallOption) (rsp *UpdateStockPriceReply, err error)
 }
 
@@ -176,6 +206,20 @@ func (c *StockServiceHTTPClientImpl) GetStockList(ctx context.Context, in *Stock
 	return &out, nil
 }
 
+// InitStockIndustryConcept 初始化同花顺行业、概念信息
+func (c *StockServiceHTTPClientImpl) InitStockIndustryConcept(ctx context.Context, in *InitStockIndustryConceptRequest, opts ...http.CallOption) (*InitStockIndustryConceptReply, error) {
+	var out InitStockIndustryConceptReply
+	pattern := "/api/v1/stock/industry_concept/init"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationStockServiceInitStockIndustryConcept))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // InitStockInfo 初始化股票信息
 func (c *StockServiceHTTPClientImpl) InitStockInfo(ctx context.Context, in *InitStockInfoRequest, opts ...http.CallOption) (*InitStockInfoReply, error) {
 	var out InitStockInfoReply
@@ -190,6 +234,7 @@ func (c *StockServiceHTTPClientImpl) InitStockInfo(ctx context.Context, in *Init
 	return &out, nil
 }
 
+// UpdateStockPrice 自动更新股票价格信息
 func (c *StockServiceHTTPClientImpl) UpdateStockPrice(ctx context.Context, in *UpdateStockPriceRequest, opts ...http.CallOption) (*UpdateStockPriceReply, error) {
 	var out UpdateStockPriceReply
 	pattern := "/api/v1/stock/price/update"

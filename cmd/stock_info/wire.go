@@ -24,7 +24,7 @@ func wireApp(config *configs.Config, logger log.Logger) (*kratos.App, func(), er
 		server.ProviderSet,
 		data.ProviderSet,
 		service.ProviderSet,
-		dao.ProviderSet,
+		dao.DaoProviderSet,
 		newApp,
 	))
 }

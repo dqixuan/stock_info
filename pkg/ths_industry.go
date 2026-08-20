@@ -29,7 +29,7 @@ type THSBoardsResult struct {
 // GetTHSBoards 调用 Python 脚本获取同花顺板块清单
 // boardType: "all" / "industry" / "concept"
 func GetTHSBoards(boardType string) (*THSBoardsResult, error) {
-	scriptPath, err := resolveScriptPath("get_ths_boards.py")
+	scriptPath, err := resolveScriptPath("get_stock_industry.py")
 	if err != nil {
 		return nil, err
 	}
